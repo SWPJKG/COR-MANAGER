@@ -776,9 +776,34 @@
 <!-- CREATE TAB -->
 <div class="tab-page active" id="page-create">
 <div class="form-page" id="corFormPage">
+    <!-- Edit mode banner (hidden by default) -->
+    <div id="editModeBanner" style="display:none;background:var(--amber);color:#1a1a2e;border-radius:8px;padding:10px 18px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;font-weight:600;font-size:13px">
+      <span>✏️ Editing existing COR — changes will update the saved record</span>
+      <button class="btn btn-sm" onclick="cancelEditCOR()" style="background:rgba(0,0,0,0.15);color:#1a1a2e;border:none;font-weight:700">✕ Cancel Edit</button>
+    </div>
+    <!-- Edit mode status bar (hidden by default) -->
+    <div id="editModeStatusBar" style="display:none;margin-bottom:16px">
+      <div class="section-card" style="margin:0">
+        <div class="section-body" style="padding:12px 24px">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:1px">Status</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="status-btn" data-status="pending" onclick="setEditStatus('pending')">Pending</button>
+              <button class="status-btn" data-status="under-review" onclick="setEditStatus('under-review')">Under Review</button>
+              <button class="status-btn" data-status="approved" onclick="setEditStatus('approved')">Approved</button>
+              <button class="status-btn" data-status="rejected" onclick="setEditStatus('rejected')">Rejected</button>
+              <button class="status-btn" data-status="void" onclick="setEditStatus('void')">Void</button>
+            </div>
+            <span id="editStatusDisplay" class="badge" style="margin-left:auto"></span>
+          </div>
+        </div>
+      </div>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div class="page-title">Create Change Order Request</div>
-      <button class="btn btn-ghost btn-sm" onclick="clearForm()" style="margin-top:4px">✕ Clear Form</button>
+      <div class="page-title" id="createPageTitle">Create Change Order Request</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="createClearBtn" onclick="clearForm()" style="margin-top:4px">✕ Clear Form</button>
+      </div>
     </div>
     <div class="page-sub">Fill out all required fields, then save or generate a PDF to send.</div>
 
@@ -1086,49 +1111,22 @@
 
 
     <div class="form-actions">
-      <button class="btn btn-ghost" onclick="clearForm()">✕ Clear</button>
-      <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" id="formActionLeft" onclick="clearForm()">✕ Clear</button>
+      <div style="display:flex;gap:10px;" id="formActionRight">
         <button class="btn btn-outline" onclick="saveCOR()">💾 Save COR</button>
         <button class="btn btn-primary" onclick="previewPDF()">📄 Preview &amp; Generate PDF</button>
+      </div>
+      <!-- Edit mode buttons (hidden by default) -->
+      <div style="display:flex;gap:10px;display:none" id="editModeActions">
+        <button class="btn btn-ghost" onclick="cancelEditCOR()">✕ Cancel</button>
+        <button class="btn btn-outline" onclick="printEditPDF()">📄 Generate PDF</button>
+        <button class="btn btn-primary" onclick="saveEditCOR()">💾 Save Changes</button>
       </div>
     </div>
   </div><!-- /form-page -->
 </div><!-- /page-create -->
 
 <!-- EDIT COR PAGE (hidden, no tab) -->
-<div class="tab-page" id="page-edit-cor">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-    <div class="page-title">Edit Change Order Request</div>
-    <button class="btn btn-ghost btn-sm" onclick="closeEditCOR()" style="margin-top:4px">← Back to Log</button>
-  </div>
-  <div class="page-sub">Editing an existing COR. Changes will update the saved record.</div>
-
-  <!-- Status Bar -->
-  <div class="section-card" style="margin-bottom:20px">
-    <div class="section-body" style="padding:14px 24px">
-      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <span style="font-size:12px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:1px">Status</span>
-        <div style="display:flex;gap:8px;flex-wrap:wrap" id="editStatusBtns">
-          <button class="status-btn" data-status="pending" onclick="setEditStatus('pending')">Pending</button>
-          <button class="status-btn" data-status="under-review" onclick="setEditStatus('under-review')">Under Review</button>
-          <button class="status-btn" data-status="approved" onclick="setEditStatus('approved')">Approved</button>
-          <button class="status-btn" data-status="rejected" onclick="setEditStatus('rejected')">Rejected</button>
-          <button class="status-btn" data-status="void" onclick="setEditStatus('void')">Void</button>
-        </div>
-        <span id="editStatusDisplay" class="badge" style="margin-left:auto"></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reuse same form fields via iframe-like approach: just clone form content -->
-  <div id="editCORFormContainer"></div>
-
-  <div style="display:flex;gap:12px;padding:24px 0 8px">
-    <button class="btn btn-primary" onclick="saveEditCOR()">💾 Save Changes</button>
-    <button class="btn btn-outline" onclick="printEditPDF()">📄 Generate PDF</button>
-    <button class="btn btn-ghost" onclick="closeEditCOR()">Cancel</button>
-  </div>
-</div>
 
 <!-- PROJECTS TAB -->
 <div class="tab-page" id="page-projects">
@@ -2634,74 +2632,53 @@ function openEditCOR(id) {
   _editingCORId = id;
   setEditStatus(cor.status || 'pending');
 
-  // Clone the entire form page into the edit container
-  const container = document.getElementById('editCORFormContainer');
-  const formPage = document.getElementById('corFormPage');
-  container.innerHTML = '';
-  const clone = formPage.cloneNode(true);
-  // Remove the bottom form-actions bar from clone (edit page has its own buttons)
-  const cloneActions = clone.querySelector('.form-actions');
-  if (cloneActions) cloneActions.remove();
-  // Remove the title row from clone (edit page has its own title)
-  const cloneTitleRow = clone.querySelector('[style*="justify-content:space-between"]');
-  if (cloneTitleRow) cloneTitleRow.remove();
-  const cloneSub = clone.querySelector('.page-sub');
-  if (cloneSub) cloneSub.remove();
-  container.appendChild(clone);
+  // Load into the real create form (all buttons/render fns work normally)
+  loadCOR(id);
 
-  // Now populate the CLONED fields (they have same IDs — temporarily reassign)
-  populateEditFields(cor, clone);
+  // Switch UI into edit mode
+  _setEditModeUI(true);
 
-  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-edit-cor').classList.add('active');
+  switchTab('create');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function populateEditFields(cor, container) {
-  const f = id => container.querySelector(`[id="${id}"]`);
-  const sel = f('projectSelect');
-  if (sel) {
-    // Re-populate project options
-    renderProjectSelectIn(sel);
-    if (cor.projectId && sel.querySelector(`option[value="${cor.projectId}"]`)) sel.value = cor.projectId;
-    else sel.value = '';
-  }
-  const fields = {
-    customerName: cor.customerName, customerAddress: cor.customerAddress,
-    customerCityState: cor.customerCityState, corNumber: cor.corNumber,
-    customerRefNumber: cor.customerRefNumber, internalLabel: cor.internalLabel,
-    createdBy: cor.createdBy||'', dateSubmitted: cor.dateSubmitted,
-    corTitle: cor.corTitle, corDescription: cor.corDescription,
-    taxRate: cor.taxRate, markupRate: cor.markupRate,
-    bondRate: cor.bondRate||'', insuranceRate: cor.insuranceRate||''
-  };
-  Object.entries(fields).forEach(([id, val]) => { const el = f(id); if (el) el.value = val; });
+function _setEditModeUI(editing) {
+  const banner        = document.getElementById('editModeBanner');
+  const statusBar     = document.getElementById('editModeStatusBar');
+  const createClearBtn= document.getElementById('createClearBtn');
+  const title         = document.getElementById('createPageTitle');
+  const normalActions = document.getElementById('formActionRight');
+  const leftBtn       = document.getElementById('formActionLeft');
+  const editActions   = document.getElementById('editModeActions');
 
-  // Restore rows into state and render into cloned tbodies
-  state.tmTags = [...cor.tmTags];
-  state.laborRows = [...cor.laborRows];
-  state.materialRows = [...cor.materialRows];
-  state.equipmentRows = [...cor.equipmentRows];
-  state.otherRows = [...cor.otherRows];
-  state.subRows = [...cor.subRows];
-  renderTMTags(); ['labor','material','equipment','other'].forEach(t => renderRows(t));
-  renderSubRows(); updateTotals();
+  if (editing) {
+    banner.style.display        = 'flex';
+    statusBar.style.display     = 'block';
+    createClearBtn.style.display= 'none';
+    title.textContent           = 'Edit Change Order Request';
+    normalActions.style.display = 'none';
+    leftBtn.style.display       = 'none';
+    editActions.style.display   = 'flex';
+  } else {
+    banner.style.display        = 'none';
+    statusBar.style.display     = 'none';
+    createClearBtn.style.display= '';
+    title.textContent           = 'Create Change Order Request';
+    normalActions.style.display = '';
+    leftBtn.style.display       = '';
+    editActions.style.display   = 'none';
+  }
 }
 
-function renderProjectSelectIn(sel) {
-  sel.innerHTML = '<option value="">— Select Project —</option>';
-  state.projects.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id; opt.textContent = p.name;
-    sel.appendChild(opt);
-  });
+function cancelEditCOR() {
+  _editingCORId = null;
+  _setEditModeUI(false);
+  confirmClearForm();
+  switchTab('log');
 }
 
 function closeEditCOR() {
-  document.getElementById('editCORFormContainer').innerHTML = '';
-  _editingCORId = null;
-  switchTab('log');
+  cancelEditCOR();
 }
 
 function setEditStatus(status) {
@@ -2718,20 +2695,25 @@ function setEditStatus(status) {
 
 function saveEditCOR() {
   if (!_editingCORId) return;
-  const container = document.getElementById('editCORFormContainer');
-  if (!validateFormIn(container)) { alert('Please fill out all required fields (*).'); return; }
-  const data = getFormDataFrom(container);
+  const req = ['customerName','corNumber','corTitle','corDescription'];
+  const missing = req.some(id => !document.getElementById(id)?.value.trim());
+  if (missing) { alert('Please fill out all required fields (*).'); return; }
+  const data = getFormData();
   const idx = state.corLog.findIndex(c => c.id === _editingCORId);
   if (idx === -1) return;
   state.corLog[idx] = { ...state.corLog[idx], ...data, id: _editingCORId, status: _editStatus };
   saveState();
-  closeEditCOR();
+  _editingCORId = null;
+  _setEditModeUI(false);
+  confirmClearForm();
+  switchTab('log');
 }
 
 function printEditPDF() {
-  const container = document.getElementById('editCORFormContainer');
-  if (!validateFormIn(container)) { alert('Please fill out all required fields (*).'); return; }
-  const data = getFormDataFrom(container);
+  const req = ['customerName','corNumber','corTitle','corDescription'];
+  const missing = req.some(id => !document.getElementById(id)?.value.trim());
+  if (missing) { alert('Please fill out all required fields (*).'); return; }
+  const data = getFormData();
   document.getElementById('pdf-content').innerHTML = buildPDFHTML(data);
   document.getElementById('pdf-preview').style.display = 'block';
 }
