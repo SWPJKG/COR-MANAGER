@@ -1950,7 +1950,6 @@ async function pullFromSheets() {
   const cfg = getSheetsConfig();
   if (!cfg.sheetId || !cfg.serviceAccount) return;
   try {
-    // Ensure tabs exist before reading (creates them if missing)
     await ensureSheetTabs(cfg.sheetId);
 
     const [corRows, projRows, matRows, lrRows] = await Promise.all([
@@ -1960,27 +1959,38 @@ async function pullFromSheets() {
       safeRead(cfg.sheetId, 'LaborRates!A2:Z10000')
     ]);
 
-    const newCORs      = corRows.map(rowToCOR).filter(Boolean);
-    const newProjects  = projRows.filter(r => r[0]).map(rowToProject);
-    const newMats      = matRows.filter(r => r[0]).map(rowToMat);
-    const newLaborRates= lrRows.filter(r => r[0]).map(rowToLaborRate);
+    const newCORs       = corRows.map(rowToCOR).filter(Boolean);
+    const newProjects   = projRows.filter(r => r[0]).map(rowToProject);
+    const newMats       = matRows.filter(r => r[0]).map(rowToMat);
+    const newLaborRates = lrRows.filter(r => r[0]).map(rowToLaborRate);
 
-    if (JSON.stringify(newCORs) !== JSON.stringify(state.corLog)) {
-      state.corLog = newCORs; renderCORLog();
+    // SAFETY: never overwrite existing data with empty results from a failed/empty pull
+    // Only update if sheets returned data OR local state is already empty
+    if (newCORs.length > 0 || state.corLog.length === 0) {
+      if (JSON.stringify(newCORs) !== JSON.stringify(state.corLog)) {
+        state.corLog = newCORs; renderCORLog();
+      }
     }
-    if (JSON.stringify(newProjects) !== JSON.stringify(state.projects)) {
-      state.projects = newProjects; renderProjects(); renderProjectSelect(); renderLogFilterChips();
+    if (newProjects.length > 0 || state.projects.length === 0) {
+      if (JSON.stringify(newProjects) !== JSON.stringify(state.projects)) {
+        state.projects = newProjects; renderProjects(); renderProjectSelect(); renderLogFilterChips();
+      }
     }
-    if (JSON.stringify(newMats) !== JSON.stringify(state.catalog)) {
-      state.catalog = newMats; renderCatalog(); updateCatalogBadges(); refreshTypeUI();
+    if (newMats.length > 0 || state.catalog.length === 0) {
+      if (JSON.stringify(newMats) !== JSON.stringify(state.catalog)) {
+        state.catalog = newMats; renderCatalog(); updateCatalogBadges(); refreshTypeUI();
+      }
     }
-    if (JSON.stringify(newLaborRates) !== JSON.stringify(state.laborRates)) {
-      state.laborRates = newLaborRates; renderLaborRates();
+    if (newLaborRates.length > 0 || state.laborRates.length === 0) {
+      if (JSON.stringify(newLaborRates) !== JSON.stringify(state.laborRates)) {
+        state.laborRates = newLaborRates; renderLaborRates();
+      }
     }
     setSyncStatus('ok');
   } catch(e) {
     console.warn('Pull failed:', e);
     setSyncStatus('error', e.message);
+    // Do NOT touch state on error
   }
 }
 
@@ -2063,7 +2073,7 @@ async function saveState() {
 function startSync() {
   stopSync();
   pullFromSheets();
-  syncInterval = setInterval(pullFromSheets, 10000);
+  syncInterval = setInterval(pullFromSheets, 120000);
 }
 
 function stopSync() {
