@@ -2003,16 +2003,39 @@ async function pushToSheets() {
   setSyncStatus('saving');
   try {
     await ensureSheetTabs(cfg.sheetId);
+
+    // Pull latest from Sheets first, merge local on top, then write back
+    // This prevents multi-user overwrites — other users' records are preserved
+    const [corRows, projRows, matRows, lrRows] = await Promise.all([
+      safeRead(cfg.sheetId, 'COR_Log!A2:Z10000'),
+      safeRead(cfg.sheetId, 'Projects!A2:Z10000'),
+      safeRead(cfg.sheetId, 'Materials!A2:Z10000'),
+      safeRead(cfg.sheetId, 'LaborRates!A2:Z10000')
+    ]);
+
+    // Merge: keep remote-only records, overlay local records (local wins on conflict)
+    const mergeById = (remoteRows, localItems, toRow) => {
+      const localIds = new Set(localItems.map(i => String(i.id)));
+      const result = [];
+      // Keep any remote records not present locally (added by other users)
+      remoteRows.forEach(row => { if (row[0] && !localIds.has(String(row[0]))) result.push(row); });
+      // Add all local records (overwrites matching remote records)
+      localItems.forEach(item => result.push(toRow(item)));
+      return result;
+    };
+
     const writeTab = async (tab, rows) => {
       await sheetsClear(cfg.sheetId, `${tab}!A2:Z10000`);
       if (rows.length) await sheetsWrite(cfg.sheetId, `${tab}!A2`, rows);
     };
+
     await Promise.all([
-      writeTab('COR_Log',    state.corLog.map(corToRow)),
-      writeTab('Projects',   state.projects.map(projectToRow)),
-      writeTab('Materials',  state.catalog.map(matToRow)),
-      writeTab('LaborRates', state.laborRates.map(laborRateToRow))
+      writeTab('COR_Log',    mergeById(corRows,  state.corLog,     corToRow)),
+      writeTab('Projects',   mergeById(projRows, state.projects,   projectToRow)),
+      writeTab('Materials',  mergeById(matRows,  state.catalog,    matToRow)),
+      writeTab('LaborRates', mergeById(lrRows,   state.laborRates, laborRateToRow))
     ]);
+
     setSyncStatus('ok');
   } catch(e) {
     console.warn('Push failed:', e);
