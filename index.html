@@ -2608,17 +2608,17 @@ function buildPDFHTML(data) {
     <!-- Signatures -->
     <div class="pdf-footer">
       <div>
-        <div style="font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Submitted By</div>
+        <div style="font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px">Submitted By</div>
         <div class="sig-line"></div>
         <div class="sig-label">Signature / Date</div>
-        <div style="margin-top:12px;font-size:11px;color:#888">Name / Title</div>
+        <div style="margin-top:8px;font-size:10px;color:#888">Name / Title</div>
         <div class="sig-line"></div>
       </div>
       <div>
-        <div style="font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Approved By</div>
+        <div style="font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px">Approved By</div>
         <div class="sig-line"></div>
         <div class="sig-label">Signature / Date</div>
-        <div style="margin-top:12px;font-size:11px;color:#888">Name / Title</div>
+        <div style="margin-top:8px;font-size:10px;color:#888">Name / Title</div>
         <div class="sig-line"></div>
       </div>
     </div>
@@ -2688,24 +2688,24 @@ function printPDF() {
     body { font-family: 'IBM Plex Sans', sans-serif; color: #1a1a1a; background: white; }
     .pdf-page { max-width: 7.5in; margin: 0 auto; padding: 0.4in 0.5in; }
     .pdf-page2 { page-break-before: always; border-top: 1px solid #e0e0e0; padding-top: 0.4in; }
-    .pdf-letterhead { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; }
-    .pdf-company-info { display: flex; align-items: center; gap: 16px; }
-    .pdf-logo { height: 80px; width: auto; object-fit: contain; }
-    .pdf-company-name { font-size: 20px; font-weight: 800; color: #1a1a6e; letter-spacing: -0.3px; line-height: 1.2; }
-    .pdf-company-addr { font-size: 12px; color: #555; margin-top: 3px; }
+    .pdf-letterhead { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; }
+    .pdf-company-info { display: flex; align-items: center; gap: 12px; }
+    .pdf-logo { height: 60px; width: auto; object-fit: contain; }
+    .pdf-company-name { font-size: 18px; font-weight: 800; color: #1a1a6e; letter-spacing: -0.3px; line-height: 1.2; }
+    .pdf-company-addr { font-size: 11px; color: #555; margin-top: 2px; }
     .pdf-cor-block { text-align: right; }
-    .pdf-cor-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 4px; }
-    .pdf-cor-num { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 700; color: #ffffff; background: #cc2222; padding: 8px 16px; border-radius: 6px; display: inline-block; }
-    .pdf-cor-date { font-size: 12px; color: #666; margin-top: 6px; }
-    .pdf-header-divider { border: none; border-top: 4px solid #1a1a6e; padding-top: 3px; background: transparent; margin-bottom: 24px; }
-    .pdf-section { margin-bottom: 16px; }
-    .pdf-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #ffffff; background: #1a1a6e; padding: 6px 12px; margin-bottom: 14px; border-radius: 3px; }
-    .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .pdf-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 16px; }
-    .pdf-field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 4px; }
-    .pdf-field-value { font-size: 14px; color: #1a1a1a; font-weight: 500; line-height: 1.4; }
-    .pdf-cor-title-block { font-size: 22px; font-weight: 800; color: #0f1c2e; margin-bottom: 14px; letter-spacing: -0.3px; line-height: 1.3; }
-    .pdf-description { background: #f4f6fb; border-left: 4px solid #cc2222; padding: 14px 18px; font-size: 13px; color: #333; line-height: 1.7; border-radius: 0 6px 6px 0; }
+    .pdf-cor-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 3px; }
+    .pdf-cor-num { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; color: #ffffff; background: #cc2222; padding: 6px 14px; border-radius: 6px; display: inline-block; }
+    .pdf-cor-date { font-size: 11px; color: #666; margin-top: 5px; }
+    .pdf-header-divider { border: none; border-top: 4px solid #1a1a6e; padding-top: 2px; background: transparent; margin-bottom: 14px; }
+    .pdf-section { margin-bottom: 12px; }
+    .pdf-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #ffffff; background: #1a1a6e; padding: 5px 12px; margin-bottom: 10px; border-radius: 3px; }
+    .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-bottom: 4px; }
+    .pdf-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 16px; margin-bottom: 4px; }
+    .pdf-field-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 2px; }
+    .pdf-field-value { font-size: 13px; color: #1a1a1a; font-weight: 500; line-height: 1.3; }
+    .pdf-cor-title-block { font-size: 18px; font-weight: 800; color: #0f1c2e; margin-bottom: 8px; letter-spacing: -0.3px; line-height: 1.2; }
+    .pdf-description { background: #f4f6fb; border-left: 4px solid #cc2222; padding: 9px 14px; font-size: 12px; color: #333; line-height: 1.5; border-radius: 0 6px 6px 0; }
     .pdf-cover-summary { max-width: 420px; margin: 0 auto; }
     .pdf-cover-rows { border: 1px solid #dde2e8; border-radius: 8px 8px 0 0; overflow: hidden; }
     .pdf-cover-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid #eef0f4; }
@@ -2732,12 +2732,12 @@ function printPDF() {
     .pdf-table td { padding: 7px 10px; border-bottom: 1px solid #eee; color: #333; }
     .pdf-table tr:nth-child(even) td { background: #f8f9fb; }
     .pdf-totals { max-width: 280px; margin-left: auto; }
-    .pdf-total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+    .pdf-total-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; border-bottom: 1px solid #eee; }
     .pdf-total-row.subtotal-row { font-weight: 600; color: #1a1a6e; }
-    .pdf-total-row.grand { font-weight: 700; font-size: 15px; color: #ffffff; background: #cc2222; padding: 10px 12px; border-radius: 4px; border: none; margin-top: 8px; }
-    .pdf-footer { margin-top: 28px; padding-top: 16px; border-top: 4px solid #1a1a6e; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-    .sig-line { border-bottom: 1px solid #999; margin-top: 36px; margin-bottom: 6px; }
-    .sig-label { font-size: 11px; color: #666; }
+    .pdf-total-row.grand { font-weight: 700; font-size: 14px; color: #ffffff; background: #cc2222; padding: 8px 12px; border-radius: 4px; border: none; margin-top: 6px; }
+    .pdf-footer { margin-top: 20px; padding-top: 14px; border-top: 4px solid #1a1a6e; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .sig-line { border-bottom: 1px solid #999; margin-top: 18px; margin-bottom: 5px; }
+    .sig-label { font-size: 10px; color: #666; }
     @media print {
       @page { size: 8.5in 11in; margin: 0.5in; }
       body { margin: 0; }
