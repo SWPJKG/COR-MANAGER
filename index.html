@@ -775,7 +775,7 @@
 
 <!-- CREATE TAB -->
 <div class="tab-page active" id="page-create">
-<div class="form-page">
+<div class="form-page" id="corFormPage">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
       <div class="page-title">Create Change Order Request</div>
       <button class="btn btn-ghost btn-sm" onclick="clearForm()" style="margin-top:4px">✕ Clear Form</button>
@@ -2490,10 +2490,10 @@ function openEditCOR(id) {
   loadCOR(id);
   setEditStatus(cor.status || 'pending');
 
-  // Move all section-cards from create page into edit container
+  // Move all section-cards from form-page into edit container
   const container = document.getElementById('editCORFormContainer');
   container.innerHTML = '';
-  document.querySelectorAll('#page-create .section-card').forEach(el => container.appendChild(el));
+  document.querySelectorAll('#corFormPage .section-card').forEach(el => container.appendChild(el));
 
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2502,9 +2502,13 @@ function openEditCOR(id) {
 }
 
 function closeEditCOR() {
-  // Return all section-cards to create page
-  const createPage = document.getElementById('page-create');
-  document.querySelectorAll('#editCORFormContainer .section-card').forEach(el => createPage.appendChild(el));
+  // Return all section-cards back to form-page in correct order
+  const formPage = document.getElementById('corFormPage');
+  const formActions = formPage.querySelector('.form-actions');
+  document.querySelectorAll('#editCORFormContainer .section-card').forEach(el => {
+    // Insert before form-actions so order is preserved
+    formActions ? formPage.insertBefore(el, formActions) : formPage.appendChild(el);
+  });
   document.getElementById('editCORFormContainer').innerHTML = '';
   _editingCORId = null;
   switchTab('log');
