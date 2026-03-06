@@ -868,7 +868,7 @@
       </div>
     </div>
 
-    <!-- LABOR -->
+    <!-- LABOR (unified: material labor + additional labor) -->
     <div class="section-card">
       <div class="section-header">
         <h3>Labor</h3>
@@ -877,25 +877,63 @@
           <button class="btn btn-outline btn-sm" onclick="addRow('labor')">+ Add Row</button>
         </div>
       </div>
-      <div class="section-body table-body">
+      <div class="section-body" style="padding:16px 24px 20px">
+
+        <!-- Material Labor sub-section -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--slate);margin-bottom:12px">Material Labor <span style="font-weight:400;text-transform:none;letter-spacing:0">— auto-calculated from material rows</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+            <div>
+              <div class="field-label" style="margin-bottom:6px">Plumber Rate</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="number" id="matLaborPlumberRate" placeholder="0.00" min="0" step="0.01" style="width:100px" oninput="updateMatLabor()">
+                <button class="btn btn-ghost btn-sm" onclick="openMatLaborRatePicker('plumber')">📋 Pick Rate</button>
+                <span style="font-size:11px;color:var(--slate)">60% of hours</span>
+              </div>
+            </div>
+            <div>
+              <div class="field-label" style="margin-bottom:6px">Helper Rate</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="number" id="matLaborHelperRate" placeholder="0.00" min="0" step="0.01" style="width:100px" oninput="updateMatLabor()">
+                <button class="btn btn-ghost btn-sm" onclick="openMatLaborRatePicker('helper')">📋 Pick Rate</button>
+                <span style="font-size:11px;color:var(--slate)">40% of hours</span>
+              </div>
+            </div>
+          </div>
+          <div id="matLaborSummary" style="background:var(--navy-light);border-radius:8px;padding:14px 18px;display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;font-size:13px">
+              <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total Mat. Hours</div><div style="font-weight:600;color:var(--white)" id="matLaborTotalHrs">0</div></div>
+              <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Plumber (60%)</div><div style="font-weight:600;color:var(--white)" id="matLaborPlumberHrs">0 hrs</div></div>
+              <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Helper (40%)</div><div style="font-weight:600;color:var(--white)" id="matLaborHelperHrs">0 hrs</div></div>
+              <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Mat. Labor Total</div><div style="font-weight:700;color:var(--amber)" id="matLaborTotal">/bin/sh.00</div></div>
+            </div>
+          </div>
+          <div id="matLaborEmpty" style="color:var(--slate);font-size:13px;font-style:italic">Add labor hours to material rows to see the breakdown here.</div>
+        </div>
+
+        <hr class="divider" style="margin:0 0 20px">
+
+        <!-- Additional Labor rows -->
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--slate);margin-bottom:12px">Additional Labor</div>
         <div class="table-wrap">
-        <table class="dynamic-table">
-          <thead><tr>
-            <th class="rn-h">#</th>
-            <th>Description</th>
-            <th style="width:100px">Qty (HR)</th>
-            <th style="width:110px">Rate ($/HR)</th>
-            <th style="width:100px">Total</th>
-            <th style="width:38px"></th>
-          </tr></thead>
-          <tbody id="laborBody" tabindex="0">
-            <tr><td colspan="6" class="empty-row">No labor items — click "+ Add Row"</td></tr>
-          </tbody>
-        </table>
-        <div style="font-size:9px;color:var(--slate-light);padding:3px 4px 1px">💡 Paste from Excel/Sheets: Description · Qty (HR) · Rate ($/HR)</div>
+          <table class="dynamic-table">
+            <thead><tr>
+              <th class="rn-h">#</th>
+              <th>Description</th>
+              <th style="width:100px">Qty (HR)</th>
+              <th style="width:110px">Rate ($/HR)</th>
+              <th style="width:100px">Total</th>
+              <th style="width:38px"></th>
+            </tr></thead>
+            <tbody id="laborBody" tabindex="0">
+              <tr><td colspan="6" class="empty-row">No additional labor items — click "+ Add Row"</td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:9px;color:var(--slate-light);padding:3px 4px 1px">💡 Paste from Excel/Sheets: Description · Qty (HR) · Rate ($/HR)</div>
         </div>
       </div>
     </div>
+
 
     <!-- MATERIAL -->
     <div class="section-card">
@@ -915,11 +953,12 @@
             <th style="width:90px">Quantity</th>
             <th style="width:80px">Unit</th>
             <th style="width:120px">Unit Price ($)</th>
+            <th style="width:80px">Labor Hrs</th>
             <th style="width:100px">Total</th>
             <th style="width:38px"></th>
           </tr></thead>
           <tbody id="materialBody" tabindex="0">
-            <tr><td colspan="7" class="empty-row">No material items — click "+ Add Row"</td></tr>
+            <tr><td colspan="8" class="empty-row">No material items — click "+ Add Row"</td></tr>
           </tbody>
         </table>
         <div style="font-size:9px;color:var(--slate-light);padding:3px 4px 1px">💡 Paste from Excel/Sheets: Description · Qty · Unit · Unit Price</div>
@@ -1032,13 +1071,14 @@
         <hr class="divider">
         <div class="totals-grid">
           <div class="total-item"><div class="total-label">Labor</div><div class="total-value" id="totalLabor">$0.00</div></div>
+          <div class="total-item"><div class="total-label">Material Labor</div><div class="total-value" id="totalMatLabor">$0.00</div></div>
           <div class="total-item"><div class="total-label">Material</div><div class="total-value" id="totalMaterial">$0.00</div></div>
           <div class="total-item"><div class="total-label">Equipment</div><div class="total-value" id="totalEquipment">$0.00</div></div>
           <div class="total-item"><div class="total-label">Subcontractor</div><div class="total-value" id="totalSub">$0.00</div></div>
           <div class="total-item"><div class="total-label">Other</div><div class="total-value" id="totalOther">$0.00</div></div>
           <div class="total-item"><div class="total-label">Tax</div><div class="total-value" id="totalTax">$0.00</div></div>
           <div class="total-item"><div class="total-label">Markup</div><div class="total-value" id="totalMarkup">$0.00</div></div>
-          <div class="total-item grand-item"><div class="total-label">Requested Total</div><div class="total-value grand" id="totalGrand">$0.00</div></div>
+          <div class="total-item grand-item" style="grid-column:span 4;text-align:center;align-items:center"><div class="total-label">Requested Total</div><div class="total-value grand" id="totalGrand">$0.00</div></div>
         </div>
       </div>
     </div>
@@ -1098,10 +1138,11 @@
 
   <!-- ADD PROJECT FORM -->
   <div class="section-card" style="margin-bottom:28px">
-    <div class="section-header" onclick="toggleCollapse('projectFormBody','projectFormArrow')" style="cursor:pointer;user-select:none">
+    <div class="section-header" onclick="toggleCollapse('projectFormBody','projectFormArrow','projectFormHint')" style="cursor:pointer;user-select:none">
       <h3 id="projectFormTitle">Add New Project</h3>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
         <button class="btn btn-ghost btn-sm" id="cancelEditBtn" onclick="event.stopPropagation();cancelEditProject()" style="display:none">✕ Cancel Edit</button>
+        <span style="font-size:11px;color:var(--slate);font-weight:400" id="projectFormHint">click to expand</span>
         <button class="collapse-toggle"><span class="collapse-arrow" id="projectFormArrow">▼</span></button>
       </div>
     </div>
@@ -1186,9 +1227,12 @@
 
   <!-- FILTER BAR -->
   <div class="section-card" style="margin-bottom:20px">
-    <div class="section-header" onclick="toggleCollapse('logFilterBody','logFilterArrow')" style="cursor:pointer;user-select:none">
+    <div class="section-header" onclick="toggleCollapse('logFilterBody','logFilterArrow','logFilterHint')" style="cursor:pointer;user-select:none">
       <h3>Filter</h3>
-      <button class="collapse-toggle"><span class="collapse-arrow open" id="logFilterArrow">▼</span></button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--slate);font-weight:400" id="logFilterHint">click to collapse</span>
+        <button class="collapse-toggle"><span class="collapse-arrow open" id="logFilterArrow">▼</span></button>
+      </div>
     </div>
     <div class="section-body collapsible-body" id="logFilterBody" style="padding:16px 24px">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -1243,12 +1287,17 @@
 
   <!-- IMPORT / ADD CONTROLS -->
   <div class="section-card" style="margin-bottom:24px">
-    <div class="section-header">
+    <div class="section-header" onclick="toggleCatalogAddPanel()" style="cursor:pointer;user-select:none">
       <h3>Add / Import Materials</h3>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--slate);font-weight:400" id="catalogAddPanelHint">click to collapse</span>
+        <span id="catalogAddPanelChevron" style="color:var(--amber);font-size:13px;transition:transform 0.2s">▲</span>
+      </div>
     </div>
-    <div class="section-body">
-      <!-- Manual add row -->
-      <div style="display:grid;grid-template-columns:120px 1fr 160px 110px 130px auto;gap:10px;align-items:end;margin-bottom:20px">
+    <div id="catalogAddPanelBody" class="section-body">
+
+      <!-- Manual add — row 1: Part#, Name, Type -->
+      <div style="display:grid;grid-template-columns:140px 1fr 1fr;gap:14px;margin-bottom:14px">
         <div class="field-group" style="margin:0">
           <label class="field-label">Part #</label>
           <input type="text" id="newMatPart" placeholder="e.g. CP-1200">
@@ -1259,9 +1308,13 @@
         </div>
         <div class="field-group" style="margin:0">
           <label class="field-label">Type / Category</label>
-          <input type="text" id="newMatType" placeholder="e.g. Pipe, Fittings…" list="typeDatalist">
+          <input type="text" id="newMatType" placeholder="e.g. Pipe, Fittings, Valves…" list="typeDatalist">
           <datalist id="typeDatalist"></datalist>
         </div>
+      </div>
+
+      <!-- Manual add — row 2: UOM, Cost, Labor Hrs, Add button -->
+      <div style="display:grid;grid-template-columns:120px 160px 140px 1fr auto;gap:14px;align-items:end;margin-bottom:20px">
         <div class="field-group" style="margin:0">
           <label class="field-label">UOM</label>
           <select id="newMatUom">
@@ -1275,14 +1328,19 @@
           <label class="field-label">Unit Cost ($)</label>
           <input type="number" id="newMatCost" placeholder="0.00" step="0.01" min="0">
         </div>
-        <button class="btn btn-primary" onclick="addCatalogItem()" style="height:38px;align-self:end">+ Add</button>
+        <div class="field-group" style="margin:0">
+          <label class="field-label">Labor Hrs <span style="font-size:10px;color:var(--slate);font-weight:400">(per unit)</span></label>
+          <input type="number" id="newMatLaborHrs" placeholder="0" step="0.25" min="0">
+        </div>
+        <div></div>
+        <button class="btn btn-primary" onclick="addCatalogItem()" style="height:38px;white-space:nowrap">+ Add to Catalog</button>
       </div>
 
       <hr class="divider">
 
       <!-- Import options -->
-      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:16px">
-        <div style="flex:1;min-width:220px">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;margin-top:16px">
+        <div style="flex:1;min-width:240px;max-width:360px">
           <label class="field-label" style="display:block;margin-bottom:6px">📁 Import from File</label>
           <div id="matDropZone" class="file-drop-zone"
             ondragover="event.preventDefault();this.classList.add('drag-over')"
@@ -1295,11 +1353,19 @@
           </div>
           <input type="file" id="matFileInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleMatFileUpload(event)">
         </div>
-      </div>
-
-      <!-- Format guide -->
-      <div style="margin-top:10px;font-size:11px;color:var(--slate);line-height:1.7">
-        💡 Include a header row with columns: <span style="font-family:'IBM Plex Mono',monospace;color:var(--slate-light)">Part#, Name, Type, UOM, Cost</span> — column order doesn't matter and rows without a name are skipped.
+        <div style="flex:2;min-width:260px;padding-top:4px">
+          <div style="font-size:12px;font-weight:600;color:var(--slate-light);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Import Format Guide</div>
+          <div style="font-size:12px;color:var(--slate);line-height:1.9">
+            Include a header row — column order doesn't matter, rows without a name are skipped.<br>
+            <span style="color:var(--slate-light)">Recognized column headers:</span><br>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)">Part#</span><span style="color:var(--slate)"> · </span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)">Name</span><span style="color:var(--slate)"> · </span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)">Type</span><span style="color:var(--slate)"> · </span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)">UOM</span><span style="color:var(--slate)"> · </span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)">Cost</span><span style="color:var(--slate)"> · </span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)">LaborHrs</span>
+          </div>
+        </div>
       </div>
 
       <div id="matImportStatus" style="margin-top:12px;font-size:13px;display:none"></div>
@@ -1334,13 +1400,14 @@
             <th style="width:110px">Part #</th>
             <th>Material Name</th>
             <th style="width:120px">Type</th>
-            <th style="width:80px">UOM</th>
-            <th style="width:120px;text-align:right">Unit Cost</th>
+            <th style="width:70px">UOM</th>
+            <th style="width:90px;text-align:right">Unit Cost</th>
+            <th style="width:80px;text-align:center">Labor Hrs</th>
             <th style="width:120px;text-align:right">Actions</th>
           </tr>
         </thead>
         <tbody id="catalogTableBody">
-          <tr><td colspan="6"><div class="log-empty"><div class="log-empty-icon">📦</div>No materials yet.<br><span style="font-size:13px">Add items manually or import from a file above.</span></div></td></tr>
+          <tr><td colspan="7"><div class="log-empty"><div class="log-empty-icon">📦</div>No materials yet.<br><span style="font-size:13px">Add items manually or import from a file above.</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -1509,9 +1576,15 @@
             <option>IN</option><option>SY</option><option>CF</option><option>LB</option>
           </select>
         </div>
-        <div class="field-group" style="margin:0;grid-column:span 2">
-          <label class="field-label">Unit Cost ($)</label>
-          <input type="number" id="editCatCost" placeholder="0.00" step="0.01" min="0">
+        <div class="field-group" style="margin:0;grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <label class="field-label">Unit Cost ($)</label>
+            <input type="number" id="editCatCost" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div>
+            <label class="field-label">Labor Hrs <span style="font-size:10px;color:var(--slate);font-weight:400">(per unit)</span></label>
+            <input type="number" id="editCatLaborHrs" placeholder="0" step="0.25" min="0">
+          </div>
         </div>
       </div>
     </div>
@@ -1540,13 +1613,15 @@ function switchTab(tab) {
 }
 
 // ── COLLAPSIBLE SECTIONS ──────────────────────────────
-function toggleCollapse(bodyId, arrowId) {
+function toggleCollapse(bodyId, arrowId, hintId) {
   const body = document.getElementById(bodyId);
   const arrow = document.getElementById(arrowId);
+  const hint = hintId ? document.getElementById(hintId) : null;
   if (!body) return;
   const isOpen = !body.classList.contains('collapsed');
   body.classList.toggle('collapsed', isOpen);
   if (arrow) arrow.classList.toggle('open', !isOpen);
+  if (hint) hint.textContent = isOpen ? 'click to expand' : 'click to collapse';
 }
 
 function expandSection(bodyId, arrowId) {
@@ -1821,6 +1896,7 @@ async function getAccessToken() {
 // ── STATE ────────────────────────────────────────────────
 const state = {
   corLog: [], projects: [], catalog: [], laborRates: [],
+  matLaborPlumberRate: 0, matLaborHelperRate: 0,
   activeLogFilter: [], emailTo: [], emailCc: [],
   laborRows: [], materialRows: [], equipmentRows: [],
   otherRows: [], tmTags: [], subRows: []
@@ -1893,7 +1969,7 @@ async function ensureSheetTabs(sheetId) {
   const headers = {
     COR_Log:   [['id','corNumber','corTitle','projectId','projectName','dateSubmitted','internalLabel','createdBy','status','grand','dataJSON']],
     Projects:  [['id','name','customerName','customerAddress','customerCityState','contact','contractNumber','coast','notes']],
-    Materials: [['id','partNum','name','type','uom','cost']],
+    Materials: [['id','partNum','name','type','uom','cost','laborHrs']],
     LaborRates:[['id','desc','category','rate']]
   };
   for (const tab of needed) {
@@ -1924,10 +2000,10 @@ function rowToProject(row) {
 }
 
 function matToRow(m) {
-  return [m.id, m.partNum||'', m.name, m.type||'', m.uom||'EA', m.cost||0];
+  return [m.id, m.partNum||'', m.name, m.type||'', m.uom||'EA', m.cost||0, m.laborHrs||0];
 }
 function rowToMat(row) {
-  return { id: parseFloat(row[0]), partNum: row[1]||'', name: row[2]||'', type: row[3]||'', uom: row[4]||'EA', cost: parseFloat(row[5])||0 };
+  return { id: parseFloat(row[0]), partNum: row[1]||'', name: row[2]||'', type: row[3]||'', uom: row[4]||'EA', cost: parseFloat(row[5])||0, laborHrs: parseFloat(row[6])||0 };
 }
 
 function laborRateToRow(r) {
@@ -2248,7 +2324,7 @@ function removeTMTag(i) { state.tmTags.splice(i, 1); renderTMTags(); }
 function addRow(type) {
   const id = Date.now();
   if (type === 'labor') state.laborRows.push({ id, desc:'', qty:0, rate:0 });
-  else if (type === 'material') state.materialRows.push({ id, desc:'', qty:0, unit:'EA', price:0 });
+  else if (type === 'material') state.materialRows.push({ id, desc:'', qty:0, unit:'EA', price:0, laborHrs:0 });
   else if (type === 'equipment') state.equipmentRows.push({ id, desc:'', qty:0, unit:'EA', price:0 });
   else if (type === 'other') state.otherRows.push({ id, desc:'', qty:0, unit:'EA', price:0 });
   renderRows(type);
@@ -2276,7 +2352,8 @@ function renderRows(type) {
     if (type !== t) return;
     const rows = t === 'material' ? state.materialRows : t === 'equipment' ? state.equipmentRows : state.otherRows;
     const tbody = document.getElementById(t + 'Body');
-    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No ${t} items — click "+ Add Row"</td></tr>`; return; }
+    const emptyColspan = t === 'material' ? 8 : 7;
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${emptyColspan}" class="empty-row">No ${t} items — click "+ Add Row"</td></tr>`; return; }
     tbody.innerHTML = rows.map((r, i) => `
       <tr>
         <td class="rn">${i+1}</td>
@@ -2284,6 +2361,7 @@ function renderRows(type) {
         <td><input type="number" placeholder="0" value="${r.qty||''}" min="0" oninput="state.${t}Rows[${i}].qty=+this.value;updateTotals()"></td>
         <td><select onchange="state.${t}Rows[${i}].unit=this.value">${unitOpts(r.unit)}</select></td>
         <td><input type="number" placeholder="0.00" value="${r.price||''}" min="0" step="0.01" oninput="state.${t}Rows[${i}].price=+this.value;updateTotals()"></td>
+        ${t === 'material' ? `<td><input type="number" placeholder="0" value="${r.laborHrs||''}" min="0" step="0.25" style="width:100%" oninput="state.materialRows[${i}].laborHrs=+this.value;updateMatLabor();updateTotals()"></td>` : ''}
         <td class="total-cell">${fmt((r.qty||0)*(r.price||0))}</td>
         <td class="del-cell"><button class="del-btn" onclick="removeRow('${t}',${i})" title="Delete row">✕</button></td>
       </tr>`).join('');
@@ -2330,22 +2408,30 @@ function calcTotals() {
   const equipment = state.equipmentRows.reduce((s,r) => s + (r.qty||0)*(r.price||0), 0);
   const other = state.otherRows.reduce((s,r) => s + (r.qty||0)*(r.price||0), 0);
   const sub = state.subRows.reduce((s,r) => s + (r.amount||0), 0);
+  const totalMatHrs = state.materialRows.reduce((s,r) => s + (r.laborHrs||0), 0);
+  const plumberRate = state.matLaborPlumberRate || 0;
+  const helperRate = state.matLaborHelperRate || 0;
+  const plumberHrs = totalMatHrs * 0.6;
+  const helperHrs = totalMatHrs * 0.4;
+  const matLabor = (plumberHrs * plumberRate) + (helperHrs * helperRate);
   const taxRate = (+document.getElementById('taxRate').value || 0) / 100;
   const markupRate = (+document.getElementById('markupRate').value || 0) / 100;
   const bondRate = (+document.getElementById('bondRate').value || 0) / 100;
   const insuranceRate = (+document.getElementById('insuranceRate').value || 0) / 100;
-  const subtotal = labor + material + equipment + other + sub;
+  const subtotal = labor + matLabor + material + equipment + other + sub;
   const tax = material * taxRate;
   const markup = subtotal * markupRate;
   const bond = subtotal * bondRate;
   const insurance = subtotal * insuranceRate;
   const grand = subtotal + tax + markup + bond + insurance;
-  return { labor, material, equipment, other, sub, tax, markup, bond, insurance, subtotal, grand };
+  return { labor, matLabor, material, equipment, other, sub, tax, markup, bond, insurance, subtotal, grand,
+           totalMatHrs, plumberHrs, helperHrs, plumberRate, helperRate };
 }
 
 function updateTotals() {
   const t = calcTotals();
   document.getElementById('totalLabor').textContent = fmt(t.labor);
+  document.getElementById('totalMatLabor').textContent = fmt(t.matLabor);
   document.getElementById('totalMaterial').textContent = fmt(t.material);
   document.getElementById('totalEquipment').textContent = fmt(t.equipment);
   document.getElementById('totalOther').textContent = fmt(t.other);
@@ -2361,11 +2447,45 @@ function updateTotals() {
   });
   ['material','equipment','other'].forEach(type => {
     const rows = type==='material' ? state.materialRows : type==='equipment' ? state.equipmentRows : state.otherRows;
+    const totalCell = type==='material' ? 6 : 5;
     rows.forEach((r, i) => {
       const row = document.getElementById(type+'Body').rows[i];
-      if (row) row.cells[5].textContent = fmt((r.qty||0) * (r.price||0));
+      if (row) row.cells[totalCell].textContent = fmt((r.qty||0) * (r.price||0));
     });
   });
+
+  updateMatLabor();
+}
+
+function updateMatLabor() {
+  // Sync rates from inputs to state
+  const pr = document.getElementById('matLaborPlumberRate');
+  const hr = document.getElementById('matLaborHelperRate');
+  if (pr) state.matLaborPlumberRate = +pr.value || 0;
+  if (hr) state.matLaborHelperRate = +hr.value || 0;
+
+  const totalHrs = state.materialRows.reduce((s,r) => s + (r.laborHrs||0), 0);
+  const plumberHrs = totalHrs * 0.6;
+  const helperHrs = totalHrs * 0.4;
+  const total = (plumberHrs * state.matLaborPlumberRate) + (helperHrs * state.matLaborHelperRate);
+
+  const summary = document.getElementById('matLaborSummary');
+  const empty = document.getElementById('matLaborEmpty');
+  if (totalHrs > 0) {
+    if (summary) { summary.style.display = 'block'; }
+    if (empty) empty.style.display = 'none';
+    const th = document.getElementById('matLaborTotalHrs');
+    const ph = document.getElementById('matLaborPlumberHrs');
+    const hh = document.getElementById('matLaborHelperHrs');
+    const tt = document.getElementById('matLaborTotal');
+    if (th) th.textContent = totalHrs.toFixed(2);
+    if (ph) ph.textContent = plumberHrs.toFixed(2) + ' hrs';
+    if (hh) hh.textContent = helperHrs.toFixed(2) + ' hrs';
+    if (tt) tt.textContent = fmt(total);
+  } else {
+    if (summary) summary.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+  }
 }
 
 // ── SAVE COR ──────────────────────────────────────────
@@ -2396,6 +2516,8 @@ function getFormData() {
     markupRate: document.getElementById('markupRate').value,
     bondRate: document.getElementById('bondRate').value,
     insuranceRate: document.getElementById('insuranceRate').value,
+    matLaborPlumberRate: state.matLaborPlumberRate || 0,
+    matLaborHelperRate: state.matLaborHelperRate || 0,
     totals: calcTotals(),
     emailTo: [],
     emailCc: [],
@@ -2648,6 +2770,8 @@ function getFormDataFrom(container) {
     markupRate: f('markupRate')?.value || '0',
     bondRate: f('bondRate')?.value || '',
     insuranceRate: f('insuranceRate')?.value || '',
+    matLaborPlumberRate: state.matLaborPlumberRate || 0,
+    matLaborHelperRate: state.matLaborHelperRate || 0,
     totals: calcTotals(),
     emailTo: [], emailCc: [], emailMessage: '',
     status: _editStatus
@@ -2678,6 +2802,13 @@ function loadCOR(id) {
   document.getElementById('markupRate').value = cor.markupRate;
   document.getElementById('bondRate').value = cor.bondRate || '';
   document.getElementById('insuranceRate').value = cor.insuranceRate || '';
+  // Restore material labor rates
+  state.matLaborPlumberRate = cor.matLaborPlumberRate || 0;
+  state.matLaborHelperRate = cor.matLaborHelperRate || 0;
+  const plEl = document.getElementById('matLaborPlumberRate');
+  const hlEl = document.getElementById('matLaborHelperRate');
+  if (plEl) plEl.value = state.matLaborPlumberRate || '';
+  if (hlEl) hlEl.value = state.matLaborHelperRate || '';
   state.tmTags = [...cor.tmTags];
   state.laborRows = [...cor.laborRows];
   state.materialRows = [...cor.materialRows];
@@ -2711,6 +2842,11 @@ function confirmClearForm() {
   });
   state.tmTags=[]; state.laborRows=[]; state.materialRows=[];
   state.equipmentRows=[]; state.otherRows=[]; state.subRows=[];
+  state.matLaborPlumberRate=0; state.matLaborHelperRate=0;
+  const plEl2 = document.getElementById('matLaborPlumberRate');
+  const hlEl2 = document.getElementById('matLaborHelperRate');
+  if (plEl2) plEl2.value = '';
+  if (hlEl2) hlEl2.value = '';
   renderTMTags();
   ['labor','material','equipment','other'].forEach(t => renderRows(t));
   renderSubRows();
@@ -2729,6 +2865,7 @@ function buildPDFHTML(data) {
   const costSummary = `
     <div class="pdf-totals">
       ${t.labor    ? `<div class="pdf-total-row"><span>Labor</span><span>${fmtPDF(t.labor)}</span></div>` : ''}
+      ${t.matLabor ? `<div class="pdf-total-row"><span>Material Labor</span><span>${fmtPDF(t.matLabor)}</span></div>` : ''}
       ${t.material ? `<div class="pdf-total-row"><span>Material</span><span>${fmtPDF(t.material)}</span></div>` : ''}
       ${t.equipment? `<div class="pdf-total-row"><span>Equipment</span><span>${fmtPDF(t.equipment)}</span></div>` : ''}
       ${t.sub      ? `<div class="pdf-total-row"><span>Subcontractor</span><span>${fmtPDF(t.sub)}</span></div>` : ''}
@@ -2767,11 +2904,35 @@ function buildPDFHTML(data) {
       <tbody>${state.laborRows.map(r=>`<tr><td>${r.desc}</td><td>${r.qty}</td><td>${fmtPDF(r.rate)}</td><td style="text-align:right">${fmtPDF((r.qty||0)*(r.rate||0))}</td></tr>`).join('')}</tbody>
     </table>` : '';
 
+  const totalMatHrs = state.materialRows.reduce((s,r) => s + (r.laborHrs||0), 0);
+  const plumberRate = data.matLaborPlumberRate || 0;
+  const helperRate = data.matLaborHelperRate || 0;
+  const plumberHrs = totalMatHrs * 0.6;
+  const helperHrs = totalMatHrs * 0.4;
+  const matLaborTotal = (plumberHrs * plumberRate) + (helperHrs * helperRate);
+
   const matTable = state.materialRows.length ? `
     <table class="pdf-table">
-      <thead><tr><th>Description</th><th style="width:60px">Qty</th><th style="width:60px">Unit</th><th style="width:100px">Unit Price</th><th style="width:100px;text-align:right">Total</th></tr></thead>
-      <tbody>${state.materialRows.map(r=>`<tr><td>${r.desc}</td><td>${r.qty}</td><td>${r.unit}</td><td>${fmtPDF(r.price)}</td><td style="text-align:right">${fmtPDF((r.qty||0)*(r.price||0))}</td></tr>`).join('')}</tbody>
-    </table>` : '';
+      <thead><tr><th>Description</th><th style="width:50px">Qty</th><th style="width:50px">Unit</th><th style="width:90px">Unit Price</th><th style="width:70px">Labor Hrs</th><th style="width:90px;text-align:right">Total</th></tr></thead>
+      <tbody>${state.materialRows.map(r=>`<tr><td>${r.desc}</td><td>${r.qty}</td><td>${r.unit}</td><td>${fmtPDF(r.price)}</td><td style="text-align:center">${r.laborHrs||0}</td><td style="text-align:right">${fmtPDF((r.qty||0)*(r.price||0))}</td></tr>`).join('')}</tbody>
+    </table>
+    ${totalMatHrs > 0 ? `
+    <div style="margin-top:10px;background:#f5f7fa;border:1px solid #e0e4ec;border-radius:6px;padding:10px 14px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#5a6a7e;margin-bottom:8px">Material Labor Breakdown</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="color:#5a6a7e">
+          <th style="text-align:left;padding:3px 6px;font-weight:600">Role</th>
+          <th style="text-align:center;padding:3px 6px;font-weight:600">Hours</th>
+          <th style="text-align:right;padding:3px 6px;font-weight:600">Rate</th>
+          <th style="text-align:right;padding:3px 6px;font-weight:600">Total</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:3px 6px">Plumber (60%)</td><td style="text-align:center;padding:3px 6px">${plumberHrs.toFixed(2)}</td><td style="text-align:right;padding:3px 6px">${fmtPDF(plumberRate)}/hr</td><td style="text-align:right;padding:3px 6px">${fmtPDF(plumberHrs*plumberRate)}</td></tr>
+          <tr><td style="padding:3px 6px">Helper (40%)</td><td style="text-align:center;padding:3px 6px">${helperHrs.toFixed(2)}</td><td style="text-align:right;padding:3px 6px">${fmtPDF(helperRate)}/hr</td><td style="text-align:right;padding:3px 6px">${fmtPDF(helperHrs*helperRate)}</td></tr>
+          <tr style="font-weight:700;border-top:1px solid #e0e4ec"><td style="padding:5px 6px 3px" colspan="3">Material Labor Total (${totalMatHrs.toFixed(2)} hrs)</td><td style="text-align:right;padding:5px 6px 3px">${fmtPDF(matLaborTotal)}</td></tr>
+        </tbody>
+      </table>
+    </div>` : ''}` : '';
 
   const eqTable = state.equipmentRows.length ? `
     <table class="pdf-table">
@@ -3029,7 +3190,7 @@ const pasteConfigs = {
     renderFn: () => { renderRows('labor'); updateTotals(); }
   },
   materialBody: {
-    addFn: () => state.materialRows.push({ id: Date.now() + Math.random(), desc: '', qty: 0, unit: 'EA', price: 0 }),
+    addFn: () => state.materialRows.push({ id: Date.now() + Math.random(), desc: '', qty: 0, unit: 'EA', price: 0, laborHrs: 0 }),
     setFn: (i, cols) => {
       if (cols[0] !== undefined) state.materialRows[i].desc  = cols[0];
       if (cols[1] !== undefined) state.materialRows[i].qty   = parseFloat(cols[1]) || 0;
@@ -3254,7 +3415,52 @@ function addLaborRateSelections() {
   closeLaborRatePicker();
 }
 
+// ── MATERIAL LABOR RATE PICKER ─────────────────────────
+let _matLaborPickerTarget = null; // 'plumber' or 'helper'
+
+function openMatLaborRatePicker(target) {
+  _matLaborPickerTarget = target;
+  laborRatePickerSelections = {};
+  renderLaborRatePicker();
+  document.getElementById('laborRateModal').style.display = 'flex';
+  document.getElementById('laborRatePickerSearch').value = '';
+  // Swap the add button behavior temporarily
+  const addBtn = document.querySelector('#laborRateModal .btn-primary');
+  if (addBtn) { addBtn.setAttribute('onclick', 'applyMatLaborRate()'); addBtn.textContent = 'Use Selected Rate'; }
+}
+
+function applyMatLaborRate() {
+  const entries = Object.values(laborRatePickerSelections);
+  if (!entries.length) { closeLaborRatePicker(); return; }
+  const rate = entries[0].rate.rate; // use first selected
+  if (_matLaborPickerTarget === 'plumber') {
+    document.getElementById('matLaborPlumberRate').value = rate;
+    state.matLaborPlumberRate = rate;
+  } else {
+    document.getElementById('matLaborHelperRate').value = rate;
+    state.matLaborHelperRate = rate;
+  }
+  updateMatLabor();
+  updateTotals();
+  // Restore add button
+  const addBtn = document.querySelector('#laborRateModal .btn-primary');
+  if (addBtn) { addBtn.setAttribute('onclick', 'addLaborRateSelections()'); addBtn.textContent = '+ Add to Labor'; }
+  closeLaborRatePicker();
+}
+
 // ── MATERIAL CATALOG ──────────────────────────────────
+let _catalogAddPanelOpen = true;
+
+function toggleCatalogAddPanel() {
+  _catalogAddPanelOpen = !_catalogAddPanelOpen;
+  const body = document.getElementById('catalogAddPanelBody');
+  const chevron = document.getElementById('catalogAddPanelChevron');
+  const hint = document.getElementById('catalogAddPanelHint');
+  if (body) body.style.display = _catalogAddPanelOpen ? '' : 'none';
+  if (chevron) chevron.style.transform = _catalogAddPanelOpen ? '' : 'rotate(180deg)';
+  if (hint) hint.textContent = _catalogAddPanelOpen ? 'click to collapse' : 'click to expand';
+}
+
 let activeCatalogType = null; // current type filter
 
 function updateCatalogBadges() {
@@ -3307,20 +3513,22 @@ function setCatalogTypeFilter(type) {
   renderCatalog();
 }
 
-function addCatalogItem(partNum, name, type, uom, cost) {
+function addCatalogItem(partNum, name, type, uom, cost, laborHrs) {
   const fromForm = partNum === undefined;
   const p = fromForm ? document.getElementById('newMatPart').value.trim() : (partNum||'').toString().trim();
   const n = fromForm ? document.getElementById('newMatName').value.trim() : (name||'').toString().trim();
   const ty = fromForm ? document.getElementById('newMatType').value.trim() : (type||'').toString().trim();
   const u = fromForm ? document.getElementById('newMatUom').value : (uom || 'EA');
   const c = fromForm ? parseFloat(document.getElementById('newMatCost').value)||0 : parseFloat(cost)||0;
+  const lh = fromForm ? parseFloat(document.getElementById('newMatLaborHrs').value)||0 : parseFloat(laborHrs)||0;
   if (!n) { if (fromForm) alert('Material name is required.'); return false; }
-  state.catalog.push({ id: Date.now() + Math.random(), partNum: p, name: n, type: ty, uom: u, cost: c });
+  state.catalog.push({ id: Date.now() + Math.random(), partNum: p, name: n, type: ty, uom: u, cost: c, laborHrs: lh });
   if (fromForm) {
     document.getElementById('newMatPart').value = '';
     document.getElementById('newMatName').value = '';
     document.getElementById('newMatType').value = '';
     document.getElementById('newMatCost').value = '';
+    document.getElementById('newMatLaborHrs').value = '';
   }
   saveState();
   renderCatalog();
@@ -3338,6 +3546,7 @@ function editCatalogItem(id) {
   document.getElementById('editCatType').value = item.type || '';
   document.getElementById('editCatUom').value = item.uom || 'EA';
   document.getElementById('editCatCost').value = item.cost || 0;
+  document.getElementById('editCatLaborHrs').value = item.laborHrs || '';
   document.getElementById('catalogEditModal').classList.add('open');
   setTimeout(() => document.getElementById('editCatName').focus(), 50);
 }
@@ -3357,11 +3566,12 @@ function saveCatalogEdit() {
     setTimeout(() => el.style.borderColor = '', 2000);
     return;
   }
-  item.partNum = document.getElementById('editCatPart').value.trim();
-  item.name    = name;
-  item.type    = document.getElementById('editCatType').value.trim();
-  item.uom     = document.getElementById('editCatUom').value;
-  item.cost    = parseFloat(document.getElementById('editCatCost').value) || 0;
+  item.partNum  = document.getElementById('editCatPart').value.trim();
+  item.name     = name;
+  item.type     = document.getElementById('editCatType').value.trim();
+  item.uom      = document.getElementById('editCatUom').value;
+  item.cost     = parseFloat(document.getElementById('editCatCost').value) || 0;
+  item.laborHrs = parseFloat(document.getElementById('editCatLaborHrs').value) || 0;
   closeCatalogEditModal();
   saveState();
   renderCatalog();
@@ -3384,11 +3594,11 @@ function renderCatalog() {
   if (q) items = items.filter(x => x.name.toLowerCase().includes(q) || (x.partNum||'').toLowerCase().includes(q));
   const tbody = document.getElementById('catalogTableBody');
   if (!state.catalog.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="log-empty"><div class="log-empty-icon">📦</div>No materials yet.<br><span style="font-size:13px">Add items manually or import from a file above.</span></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="log-empty"><div class="log-empty-icon">📦</div>No materials yet.<br><span style="font-size:13px">Add items manually or import from a file above.</span></div></td></tr>';
     return;
   }
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--slate);font-style:italic">No items match your filter / search.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--slate);font-style:italic">No items match your filter / search.</td></tr>';
     return;
   }
   tbody.innerHTML = items.map(item => `
@@ -3398,6 +3608,7 @@ function renderCatalog() {
       <td>${item.type ? `<span class="filter-chip" style="cursor:default;font-size:11px;padding:3px 10px">${item.type}</span>` : '<span style="color:var(--slate);font-size:12px">—</span>'}</td>
       <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate)">${item.uom}</td>
       <td style="font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--green)">$${item.cost.toFixed(2)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;text-align:center;color:var(--slate)">${item.laborHrs ? item.laborHrs : '—'}</td>
       <td style="text-align:right">
         <button class="btn btn-ghost btn-sm" onclick="editCatalogItem(${item.id})">Edit</button>
         <button class="del-btn" style="margin-left:4px" onclick="deleteCatalogItem(${item.id})">✕</button>
@@ -3456,16 +3667,18 @@ function importParsedRows(rows, headers) {
   const typeCol = col(['type','category','cat','group','class']);
   const uomCol  = col(['uom','unit','u/m','measure']);
   const costCol = col(['cost','price','rate','amount','unit cost','unit price']);
+  const lhCol   = col(['labor hr','laborhr','labor_hr','labor hours','labourhours','hrs per','hours per']);
 
   let added = 0, skipped = 0;
   rows.forEach(row => {
     const name = (row[nameCol] || '').toString().trim();
     if (!name) { skipped++; return; }
-    const partNum = partCol ? (row[partCol]||'').toString().trim() : '';
-    const type    = typeCol ? (row[typeCol]||'').toString().trim() : '';
-    const uom     = uomCol  ? (row[uomCol] ||'EA').toString().trim() : 'EA';
-    const cost    = costCol ? parseFloat(row[costCol])||0 : 0;
-    addCatalogItem(partNum, name, type, uom, cost);
+    const partNum  = partCol ? (row[partCol]||'').toString().trim() : '';
+    const type     = typeCol ? (row[typeCol]||'').toString().trim() : '';
+    const uom      = uomCol  ? (row[uomCol] ||'EA').toString().trim() : 'EA';
+    const cost     = costCol ? parseFloat(row[costCol])||0 : 0;
+    const laborHrs = lhCol   ? parseFloat(row[lhCol])||0 : 0;
+    addCatalogItem(partNum, name, type, uom, cost, laborHrs);
     added++;
   });
   refreshTypeUI();
@@ -3551,7 +3764,7 @@ function addPickerSelections() {
   const entries = Object.values(pickerSelections);
   if (!entries.length) { closeCatalogPicker(); return; }
   entries.forEach(({ item, qty }) => {
-    state.materialRows.push({ id: Date.now()+Math.random(), desc: item.name, qty, unit: item.uom, price: item.cost });
+    state.materialRows.push({ id: Date.now()+Math.random(), desc: item.name, qty, unit: item.uom, price: item.cost, laborHrs: item.laborHrs||0 });
   });
   renderRows('material');
   updateTotals();
