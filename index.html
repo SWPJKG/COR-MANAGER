@@ -777,7 +777,7 @@
 <div class="tab-page active" id="page-create">
 <div class="form-page" id="corFormPage">
     <!-- Edit mode banner (hidden by default) -->
-    <div id="editModeBanner" style="display:none;background:var(--amber);color:#1a1a2e;border-radius:8px;padding:10px 18px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;font-weight:600;font-size:13px">
+    <div id="editModeBanner" style="display:none;background:var(--amber);color:#1a1a2e;border-radius:8px;padding:10px 18px;margin-bottom:16px;align-items:center;justify-content:space-between;font-weight:600;font-size:13px">
       <span>✏️ Editing existing COR — changes will update the saved record</span>
       <button class="btn btn-sm" onclick="cancelEditCOR()" style="background:rgba(0,0,0,0.15);color:#1a1a2e;border:none;font-weight:700">✕ Cancel Edit</button>
     </div>
@@ -930,7 +930,7 @@
               <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total Mat. Hours</div><div style="font-weight:600;color:var(--white)" id="matLaborTotalHrs">0</div></div>
               <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Plumber (60%)</div><div style="font-weight:600;color:var(--white)" id="matLaborPlumberHrs">0 hrs</div></div>
               <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Helper (40%)</div><div style="font-weight:600;color:var(--white)" id="matLaborHelperHrs">0 hrs</div></div>
-              <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Mat. Labor Total</div><div style="font-weight:700;color:var(--amber)" id="matLaborTotal">/bin/sh.00</div></div>
+              <div><div style="color:var(--slate);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Mat. Labor Total</div><div style="font-weight:700;color:var(--amber)" id="matLaborTotal">$0.00</div></div>
             </div>
           </div>
           <div id="matLaborEmpty" style="color:var(--slate);font-size:13px;font-style:italic">Add labor hours to material rows to see the breakdown here.</div>
@@ -1113,11 +1113,11 @@
     <div class="form-actions">
       <button class="btn btn-ghost" id="formActionLeft" onclick="clearForm()">✕ Clear</button>
       <div style="display:flex;gap:10px;" id="formActionRight">
-        <button class="btn btn-outline" onclick="saveCOR()">💾 Save COR</button>
+        <button class="btn btn-outline" onclick="saveCOR(event)">💾 Save COR</button>
         <button class="btn btn-primary" onclick="previewPDF()">📄 Preview &amp; Generate PDF</button>
       </div>
       <!-- Edit mode buttons (hidden by default) -->
-      <div style="display:flex;gap:10px;display:none" id="editModeActions">
+      <div style="display:none;gap:10px" id="editModeActions">
         <button class="btn btn-ghost" onclick="cancelEditCOR()">✕ Cancel</button>
         <button class="btn btn-outline" onclick="printEditPDF()">📄 Generate PDF</button>
         <button class="btn btn-primary" onclick="saveEditCOR()">💾 Save Changes</button>
@@ -1185,7 +1185,7 @@
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:16px">
-        <button class="btn btn-primary" onclick="saveProject()">💾 Save Project</button>
+        <button class="btn btn-primary" onclick="saveProject(event)">💾 Save Project</button>
       </div>
     </div>
   </div>
@@ -1470,7 +1470,7 @@
 </div>
 
 <!-- CATALOG PICKER MODAL -->
-<div id="catalogModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:center;justify-content:center">
+<div id="catalogModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:center;justify-content:center">
   <div style="background:var(--navy-mid);border:1px solid var(--border);border-radius:12px;width:680px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <div>
@@ -1640,7 +1640,7 @@ function expandSection(bodyId, arrowId) {
 }
 
 // ── PROJECTS ──────────────────────────────────────────
-function saveProject() {
+function saveProject(e) {
   const name = document.getElementById('newProjectName').value.trim();
   if (!name) { alert('Project name is required.'); return; }
   const editId = document.getElementById('editProjectId').value;
@@ -1668,7 +1668,7 @@ function saveProject() {
   renderProjectSelect();
   renderLogFilterChips();
   // Flash confirmation
-  const btn = event.target;
+  const btn = e?.target || document.activeElement;
   const orig = btn.innerHTML;
   btn.innerHTML = '✅ Saved!';
   btn.style.cssText = 'background:rgba(34,197,94,0.2);color:#22c55e;border:1px solid #22c55e';
@@ -1727,7 +1727,7 @@ function renderProjects() {
   document.getElementById('projectCountBadge2').textContent = count;
   const tbody = document.getElementById('projectsTableBody');
   if (!count) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="log-empty"><div class="log-empty-icon">🏗️</div>No projects yet.<br><span style="font-size:13px">Add a project above to get started.</span></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="log-empty"><div class="log-empty-icon">🏗️</div>No projects yet.<br><span style="font-size:13px">Add a project above to get started.</span></div></td></tr>';
     return;
   }
   tbody.innerHTML = state.projects.map(p => {
@@ -2555,14 +2555,14 @@ function validateForm() {
   return true;
 }
 
-function saveCOR() {
+function saveCOR(e) {
   if (!validateForm()) { alert('Please fill out all required fields (*).'); return; }
   const data = getFormData();
   state.corLog.unshift(data);
   saveState();
   renderCORLog();
   // Flash save confirmation
-  const btn = event.target;
+  const btn = e?.target || document.activeElement;
   const orig = btn.innerHTML;
   btn.innerHTML = '✅ Saved!';
   btn.style.background = 'rgba(34,197,94,0.2)';
