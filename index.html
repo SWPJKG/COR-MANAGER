@@ -493,6 +493,10 @@
     letter-spacing: 0.5px;
   }
   .badge-pending { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .badge-approved { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; }
+  .badge-under-review { background: rgba(99,102,241,0.15); color: #818cf8; }
+  .badge-void { background: rgba(100,116,139,0.15); color: var(--slate); }
   .badge-sent { background: rgba(34,197,94,0.15); color: var(--green); }
   .badge-east { background: rgba(59,130,246,0.15); color: #60a5fa; }
   .badge-west { background: rgba(168,85,247,0.15); color: #c084fc; }
@@ -664,6 +668,19 @@
   #sheetsSettingsModal .modal-close:hover { color: var(--white); background: rgba(255,255,255,0.1); }
   .picker-row-selected td { background: rgba(245,158,11,0.08) !important; }
 
+  .status-btn {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--navy-light); color: var(--slate-light); font-size: 12px;
+    font-weight: 500; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .status-btn:hover { border-color: var(--amber); color: var(--white); }
+  .status-btn.active-pending     { background: rgba(245,158,11,0.2);  border-color: var(--amber);  color: var(--amber); }
+  .status-btn.active-approved    { background: rgba(34,197,94,0.2);   border-color: var(--green);  color: var(--green); }
+  .status-btn.active-rejected    { background: rgba(239,68,68,0.2);   border-color: #f87171;       color: #f87171; }
+  .status-btn.active-under-review{ background: rgba(99,102,241,0.2);  border-color: #818cf8;       color: #818cf8; }
+  .status-btn.active-void        { background: rgba(100,116,139,0.2); border-color: var(--slate);  color: var(--slate); }
+
   /* FILTER CHIPS */
   .filter-chip {
     padding: 6px 14px;
@@ -793,7 +810,7 @@
           </div>
           <div class="field-group">
             <label class="field-label">COR Number <span class="req">*</span></label>
-            <input type="text" id="corNumber" placeholder="e.g. 21" style="font-family:'IBM Plex Mono',monospace; font-weight:600;">
+            <input type="text" id="corNumber" placeholder="e.g. 21">
           </div>
           <div class="field-group">
             <label class="field-label">Customer Reference Number</label>
@@ -802,6 +819,10 @@
           <div class="field-group">
             <label class="field-label">Internal Label</label>
             <input type="text" id="internalLabel" placeholder="e.g. Mechanical, Electrical, Structural...">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Created By</label>
+            <input type="text" id="createdBy" placeholder="e.g. JKG" maxlength="6" style="width:80px" oninput="this.value=this.value.toUpperCase()">
           </div>
           <div class="field-group">
             <label class="field-label">Date Submitted</label>
@@ -1034,6 +1055,41 @@
   </div><!-- /form-page -->
 </div><!-- /page-create -->
 
+<!-- EDIT COR PAGE (hidden, no tab) -->
+<div class="tab-page" id="page-edit-cor">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+    <div class="page-title">Edit Change Order Request</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeEditCOR()" style="margin-top:4px">← Back to Log</button>
+  </div>
+  <div class="page-sub">Editing an existing COR. Changes will update the saved record.</div>
+
+  <!-- Status Bar -->
+  <div class="section-card" style="margin-bottom:20px">
+    <div class="section-body" style="padding:14px 24px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:1px">Status</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="editStatusBtns">
+          <button class="status-btn" data-status="pending" onclick="setEditStatus('pending')">Pending</button>
+          <button class="status-btn" data-status="under-review" onclick="setEditStatus('under-review')">Under Review</button>
+          <button class="status-btn" data-status="approved" onclick="setEditStatus('approved')">Approved</button>
+          <button class="status-btn" data-status="rejected" onclick="setEditStatus('rejected')">Rejected</button>
+          <button class="status-btn" data-status="void" onclick="setEditStatus('void')">Void</button>
+        </div>
+        <span id="editStatusDisplay" class="badge" style="margin-left:auto"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reuse same form fields via iframe-like approach: just clone form content -->
+  <div id="editCORFormContainer"></div>
+
+  <div style="display:flex;gap:12px;padding:24px 0 8px">
+    <button class="btn btn-primary" onclick="saveEditCOR()">💾 Save Changes</button>
+    <button class="btn btn-outline" onclick="printEditPDF()">📄 Generate PDF</button>
+    <button class="btn btn-ghost" onclick="closeEditCOR()">Cancel</button>
+  </div>
+</div>
+
 <!-- PROJECTS TAB -->
 <div class="tab-page" id="page-projects">
 <div class="log-page">
@@ -1164,13 +1220,14 @@
             <th style="width:100px">Region</th>
             <th style="width:110px">Date</th>
             <th style="width:80px">Label</th>
+            <th style="width:60px">By</th>
             <th style="width:110px">Status</th>
             <th style="width:130px;text-align:right">Amount</th>
             <th style="width:160px;text-align:right">Actions</th>
           </tr>
         </thead>
         <tbody id="corLogTableBody">
-          <tr><td colspan="8"><div class="log-empty"><div class="log-empty-icon">📂</div>No CORs saved yet.<br><span style="font-size:13px">Fill out the Create COR form and click Save COR.</span></div></td></tr>
+          <tr><td colspan="9"><div class="log-empty"><div class="log-empty-icon">📂</div>No CORs saved yet.<br><span style="font-size:13px">Fill out the Create COR form and click Save COR.</span></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -1478,7 +1535,8 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + tab).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
+  const tabBtn = document.getElementById('tab-' + tab);
+  if (tabBtn) tabBtn.classList.add('active');
 }
 
 // ── COLLAPSIBLE SECTIONS ──────────────────────────────
@@ -1833,7 +1891,7 @@ async function ensureSheetTabs(sheetId) {
   }
   // Write headers if fresh
   const headers = {
-    COR_Log:   [['id','corNumber','corTitle','projectId','projectName','dateSubmitted','internalLabel','status','grand','dataJSON']],
+    COR_Log:   [['id','corNumber','corTitle','projectId','projectName','dateSubmitted','internalLabel','createdBy','status','grand','dataJSON']],
     Projects:  [['id','name','customerName','customerAddress','customerCityState','contact','contractNumber','coast','notes']],
     Materials: [['id','partNum','name','type','uom','cost']],
     LaborRates:[['id','desc','category','rate']]
@@ -1850,12 +1908,12 @@ async function ensureSheetTabs(sheetId) {
 function corToRow(c) {
   return [
     c.id, c.corNumber, c.corTitle||'', c.projectId||'', c.projectName||'',
-    c.dateSubmitted||'', c.internalLabel||'', c.status||'pending',
+    c.dateSubmitted||'', c.internalLabel||'', c.createdBy||'', c.status||'pending',
     c.totals?.grand||0, JSON.stringify(c)
   ];
 }
 function rowToCOR(row) {
-  try { return JSON.parse(row[9]||'null'); } catch { return null; }
+  try { return JSON.parse(row[10]||'null'); } catch { return null; }
 }
 
 function projectToRow(p) {
@@ -2291,6 +2349,7 @@ function getFormData() {
     corNumber: document.getElementById('corNumber').value,
     customerRefNumber: document.getElementById('customerRefNumber').value,
     internalLabel: document.getElementById('internalLabel').value,
+    createdBy: document.getElementById('createdBy').value,
     dateSubmitted: document.getElementById('dateSubmitted').value || new Date().toISOString().split('T')[0],
     corTitle: document.getElementById('corTitle').value,
     corDescription: document.getElementById('corDescription').value,
@@ -2391,10 +2450,11 @@ function renderCORLog() {
       <td style="font-size:12px">${coast ? `<span class="badge ${coast==='East Coast'?'badge-east':'badge-west'}">${coast}</span>` : '—'}</td>
       <td style="color:var(--slate);font-size:13px">${cor.dateSubmitted}</td>
       <td>${cor.internalLabel ? `<span class="badge badge-pending">${cor.internalLabel}</span>` : '—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:var(--slate-light);letter-spacing:1px;text-align:center">${cor.createdBy || '—'}</td>
       <td><span class="badge badge-${cor.status}">${cor.status}</span></td>
       <td class="amount-cell">${fmt(cor.totals.grand)}</td>
       <td class="action-cell">
-        <button class="btn btn-ghost btn-sm" onclick="loadCOR(${cor.id});switchTab('create')">Load</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditCOR(${cor.id})">Edit</button>
         <button class="btn btn-primary btn-sm" onclick="generatePDFForCOR(${cor.id})">PDF</button>
         <button class="del-btn" style="margin-left:4px" onclick="deleteCOR(${cor.id})" title="Delete COR">✕</button>
       </td>
@@ -2407,6 +2467,67 @@ function deleteCOR(id) {
   state.corLog = state.corLog.filter(c => c.id !== id);
   saveState();
   renderCORLog();
+}
+
+// ── EDIT COR ──────────────────────────────────────────
+let _editingCORId = null;
+let _editStatus = 'pending';
+
+function openEditCOR(id) {
+  const cor = state.corLog.find(c => c.id === id);
+  if (!cor) return;
+  _editingCORId = id;
+  loadCOR(id);
+  setEditStatus(cor.status || 'pending');
+
+  // Move all section-cards from create page into edit container
+  const container = document.getElementById('editCORFormContainer');
+  container.innerHTML = '';
+  document.querySelectorAll('#page-create .section-card').forEach(el => container.appendChild(el));
+
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-edit-cor').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeEditCOR() {
+  // Return all section-cards to create page
+  const createPage = document.getElementById('page-create');
+  document.querySelectorAll('#editCORFormContainer .section-card').forEach(el => createPage.appendChild(el));
+  document.getElementById('editCORFormContainer').innerHTML = '';
+  _editingCORId = null;
+  switchTab('log');
+}
+
+function setEditStatus(status) {
+  _editStatus = status;
+  document.querySelectorAll('.status-btn').forEach(b => {
+    b.className = 'status-btn';
+    if (b.dataset.status === status) b.classList.add('active-' + status);
+  });
+  const disp = document.getElementById('editStatusDisplay');
+  const labels = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected', 'under-review': 'Under Review', void: 'Void' };
+  disp.textContent = labels[status] || status;
+  disp.className = 'badge badge-' + status;
+}
+
+function saveEditCOR() {
+  if (!_editingCORId) return;
+  if (!validateForm()) { alert('Please fill out all required fields (*).'); return; }
+  const data = getFormData();
+  const idx = state.corLog.findIndex(c => c.id === _editingCORId);
+  if (idx === -1) return;
+  state.corLog[idx] = { ...state.corLog[idx], ...data, id: _editingCORId, status: _editStatus };
+  saveState();
+  closeEditCOR();
+}
+
+function printEditPDF() {
+  if (!validateForm()) { alert('Please fill out all required fields (*).'); return; }
+  const data = getFormData();
+  document.getElementById('pdf-content').innerHTML = buildPDFHTML(data);
+  document.getElementById('pdf-preview').style.display = 'block';
 }
 
 function loadCOR(id) {
@@ -2425,6 +2546,7 @@ function loadCOR(id) {
   document.getElementById('corNumber').value = cor.corNumber;
   document.getElementById('customerRefNumber').value = cor.customerRefNumber;
   document.getElementById('internalLabel').value = cor.internalLabel;
+  document.getElementById('createdBy').value = cor.createdBy || '';
   document.getElementById('dateSubmitted').value = cor.dateSubmitted;
   document.getElementById('corTitle').value = cor.corTitle;
   document.getElementById('corDescription').value = cor.corDescription;
@@ -2458,7 +2580,7 @@ function confirmClearForm() {
   closeClearModal();
   document.getElementById('projectSelect').value = '';
   ['customerName','customerAddress','customerCityState','corNumber','customerRefNumber',
-   'internalLabel','dateSubmitted','corTitle','corDescription',
+   'internalLabel','createdBy','dateSubmitted','corTitle','corDescription',
    'taxRate','markupRate','bondRate','insuranceRate'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
