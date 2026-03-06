@@ -731,8 +731,8 @@
     <span>GreeneStory COR Manager</span>
   </div>
   <div class="header-actions">
-    <span id="saveIndicator" style="font-size:11px;color:var(--green);display:none;align-items:center;gap:4px">☁️ Synced</span>
-    <button class="btn btn-outline btn-sm" onclick="openSheetsSettings()">⚙️ Sheets Setup</button>
+    <span id="saveIndicator" style="font-size:11px;color:var(--green);display:inline-flex;align-items:center;gap:4px">☁️ Synced</span>
+    <button class="btn btn-outline btn-sm" onclick="openSheetsSettings()" title="Sheets Setup">⚙️</button>
   </div>
 </div>
 
@@ -1679,8 +1679,21 @@ function clearLogFilter() {
 // ── GOOGLE SHEETS CONFIG ─────────────────────────────────
 const LS_CONFIG_KEY = 'cor_sheets_config';
 
+// Hardcoded defaults — work on any machine automatically
+const DEFAULT_SHEETS_CONFIG = {
+  sheetId: '1ryhAkV7_lLzs79spYAF8jTxYdPh98h6mYy977loiLA',
+  serviceAccount: {
+    client_email: 'swp-change-order@swp-change-orders.iam.gserviceaccount.com',
+    private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCfhvQKQiY5DSQW\nNrrIVZdCqKaaPMAaDxC6/ZQK53rxz8/g8mNNfossQX4b1IvtaHCjOy+2u4/oalCD\nCW2ytuYHcXDwakOrejkqEux++/rf9ogOdoavqw91wV+XVtd3NnZtA4wyV9jryCQS\nXZPSCWdmAmYdvG7qgKMxT/MlwSSOvr1vzNM1LNNd7T7fsRyWRC2h1ugG/MvE6UJs\n4DN0PmfPSh/rvmf2ZwwQtnd4+i3VPbMyBu8YJ9h+rJM06185V9nyRJYkYKfK/qX/\njzNh8Ccht/xOj2akGPe1EmgvjnyJ8nPnnP7IccKI+VUJCkWx5PPAIDk2nZ+K/97K\nTbPOJk4nAgMBAAECggEARQOs0z1P7PGe8Y9G2kGRGVD+Fo7+qqdm3Qa0Q81mFnQJ\nom8qf82lpwVEagTXbmN3C18hIsRdGzbXUwFCuITA2mp86j2Gvgo37dhXAQ7BN6Af\nt2YWmav/GboJQV9cAuKIdFwLDIKNwV+KH3nlaAISfgK+q9GoCIKTV1OXxPccejYi\nvgt6H5lZ7AWb0h55uaeedh4BxrmlXIQbrw9Mh+Zl/tF/UFuS7vF3MOQSel8FEOOD\nW3gXthTsXm5hCl94KeENjDTi+fC+H2cRF1SGSVThc1+twOftzzTcfurvsPWNU1jF\nmK9MjkVHrybrvabCAwi2cC0A3EssNOHaf7thzQjRjQKBgQDM7QSIvot5sabLMOgO\n2IyiAFDSMs6Mz64M3KOId1cRBVoSO4gXlHSi33cuR1o/amNKX2oUtdBqiSCTfZOK\narPb/xPH6BZPyxqrdh7tsRsKL+2l3qINe5WTKGCi/NyfRCVVMt3fS6AwJAJEDn5I\nk1/SfFJajxtqRVhgWMy+IbKGgwKBgQDHSVdbV8As/RhdI6uGbtuDHBqylkJaZ7sN\nOoFIzqglCmIzAdwOPTi7x3RR7PLiDYETtZD26jBdfcJJgUM/uSBpCvTANvmJVpdy\nhIMY1u37PaJmgP7DfT8A/uszD8SHlQNvfr1MA64XkixcsBHRX+vBhA+XxcUHUUrX\njThMB49ojQKBgBKuEFm+tMwVC5U+Egk4aClkSfm/M+DWFZGKk0WfS0p76Gf9ETzF\nBZTLNfv7+RgKxJ5E8FCO+j6b3WJUchyN+XM2X0E7wLzpULcMf2k/Wa2mDM2v66m6\n+Dl/1r9EuX+zIIwRpPPz2thIkARQJebLuFJhjsg+f0tCovm1XoR+Yd2tAoGAKV4M\nCCX6+lu/RvY0kL9KSbj3wcJ3G5UUuvY+CAL93FJ/d98W8s26jSAmASuSb2ImPRUf\ndmG+kGmefuuaLgwbsjJYA95lhiC3Z0oifHGBDPoKUATO3X2OKoLAB+VqAkroX6iL\nWtAYv0PUeZkC2ddzdMQZCIRBFffF9WCXIxEer7ECgYEAmQgUrlUhp3FymOpqLw6O\nvUNT3NTcd8HZUSxv7PmH+XM+00C99ndDXDJhwquguHBHo5XFTlptr/LimThipDG2\nZhTbUBNuolt4OTGHStvVOxXsW0//GYheHp5IyEnl79PNIxZDCNDUBxQNC5KDxDIN\nf6lydl4yeFRxAHIGuTsJbqg=\n-----END PRIVATE KEY-----\n'
+  }
+};
+
 function getSheetsConfig() {
-  try { return JSON.parse(localStorage.getItem(LS_CONFIG_KEY)) || {}; } catch { return {}; }
+  try {
+    const stored = JSON.parse(localStorage.getItem(LS_CONFIG_KEY)) || {};
+    // Merge stored config over defaults so hardcoded values always apply
+    return Object.assign({}, DEFAULT_SHEETS_CONFIG, stored.sheetId ? stored : {});
+  } catch { return DEFAULT_SHEETS_CONFIG; }
 }
 function saveSheetsConfig(cfg) {
   localStorage.setItem(LS_CONFIG_KEY, JSON.stringify(cfg));
@@ -1943,14 +1956,19 @@ function setSyncStatus(status, msg) {
   const el = document.getElementById('saveIndicator');
   if (!el) return;
   el.style.display = 'inline-flex';
+  clearTimeout(el._hideTimer);
   if (status === 'ok') {
     el.innerHTML = '☁️ Synced';
     el.style.color = 'var(--green)';
-    clearTimeout(el._hideTimer);
-    el._hideTimer = setTimeout(() => { el.style.display = 'none'; }, 3000);
+    el.style.cursor = 'default';
+    el.onclick = null;
+    el.title = '';
   } else if (status === 'saving') {
     el.innerHTML = '⏳ Saving…';
     el.style.color = 'var(--amber)';
+    el.style.cursor = 'default';
+    el.onclick = null;
+    el.title = '';
   } else if (status === 'error') {
     el.innerHTML = '⚠️ Sync error';
     el.style.color = '#f87171';
@@ -1960,6 +1978,9 @@ function setSyncStatus(status, msg) {
   } else if (status === 'disconnected') {
     el.innerHTML = '🔌 Not connected';
     el.style.color = 'var(--slate)';
+    el.style.cursor = 'default';
+    el.onclick = null;
+    el.title = '';
   }
 }
 
