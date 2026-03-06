@@ -1608,6 +1608,15 @@ function switchTab(tab) {
   document.getElementById('page-' + tab).classList.add('active');
   const tabBtn = document.getElementById('tab-' + tab);
   if (tabBtn) tabBtn.classList.add('active');
+  // When navigating to create tab manually (not in edit mode), reset row state
+  if (tab === 'create' && !_editingCORId) {
+    state.tmTags=[]; state.laborRows=[]; state.materialRows=[];
+    state.equipmentRows=[]; state.otherRows=[]; state.subRows=[];
+    renderTMTags();
+    ['labor','material','equipment','other'].forEach(t => renderRows(t));
+    renderSubRows();
+    updateTotals();
+  }
 }
 
 // ── COLLAPSIBLE SECTIONS ──────────────────────────────
