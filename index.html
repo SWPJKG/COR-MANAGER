@@ -2487,13 +2487,25 @@ function openEditCOR(id) {
   const cor = state.corLog.find(c => c.id === id);
   if (!cor) return;
   _editingCORId = id;
-  loadCOR(id);
   setEditStatus(cor.status || 'pending');
 
-  // Move all section-cards from form-page into edit container
+  // Clone the entire form page into the edit container
   const container = document.getElementById('editCORFormContainer');
+  const formPage = document.getElementById('corFormPage');
   container.innerHTML = '';
-  document.querySelectorAll('#corFormPage .section-card').forEach(el => container.appendChild(el));
+  const clone = formPage.cloneNode(true);
+  // Remove the bottom form-actions bar from clone (edit page has its own buttons)
+  const cloneActions = clone.querySelector('.form-actions');
+  if (cloneActions) cloneActions.remove();
+  // Remove the title row from clone (edit page has its own title)
+  const cloneTitleRow = clone.querySelector('[style*="justify-content:space-between"]');
+  if (cloneTitleRow) cloneTitleRow.remove();
+  const cloneSub = clone.querySelector('.page-sub');
+  if (cloneSub) cloneSub.remove();
+  container.appendChild(clone);
+
+  // Now populate the CLONED fields (they have same IDs — temporarily reassign)
+  populateEditFields(cor, clone);
 
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2501,14 +2513,47 @@ function openEditCOR(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function closeEditCOR() {
-  // Return all section-cards back to form-page in correct order
-  const formPage = document.getElementById('corFormPage');
-  const formActions = formPage.querySelector('.form-actions');
-  document.querySelectorAll('#editCORFormContainer .section-card').forEach(el => {
-    // Insert before form-actions so order is preserved
-    formActions ? formPage.insertBefore(el, formActions) : formPage.appendChild(el);
+function populateEditFields(cor, container) {
+  const f = id => container.querySelector(`[id="${id}"]`);
+  const sel = f('projectSelect');
+  if (sel) {
+    // Re-populate project options
+    renderProjectSelectIn(sel);
+    if (cor.projectId && sel.querySelector(`option[value="${cor.projectId}"]`)) sel.value = cor.projectId;
+    else sel.value = '';
+  }
+  const fields = {
+    customerName: cor.customerName, customerAddress: cor.customerAddress,
+    customerCityState: cor.customerCityState, corNumber: cor.corNumber,
+    customerRefNumber: cor.customerRefNumber, internalLabel: cor.internalLabel,
+    createdBy: cor.createdBy||'', dateSubmitted: cor.dateSubmitted,
+    corTitle: cor.corTitle, corDescription: cor.corDescription,
+    taxRate: cor.taxRate, markupRate: cor.markupRate,
+    bondRate: cor.bondRate||'', insuranceRate: cor.insuranceRate||''
+  };
+  Object.entries(fields).forEach(([id, val]) => { const el = f(id); if (el) el.value = val; });
+
+  // Restore rows into state and render into cloned tbodies
+  state.tmTags = [...cor.tmTags];
+  state.laborRows = [...cor.laborRows];
+  state.materialRows = [...cor.materialRows];
+  state.equipmentRows = [...cor.equipmentRows];
+  state.otherRows = [...cor.otherRows];
+  state.subRows = [...cor.subRows];
+  renderTMTags(); ['labor','material','equipment','other'].forEach(t => renderRows(t));
+  renderSubRows(); updateTotals();
+}
+
+function renderProjectSelectIn(sel) {
+  sel.innerHTML = '<option value="">— Select Project —</option>';
+  state.projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    sel.appendChild(opt);
   });
+}
+
+function closeEditCOR() {
   document.getElementById('editCORFormContainer').innerHTML = '';
   _editingCORId = null;
   switchTab('log');
@@ -2528,8 +2573,9 @@ function setEditStatus(status) {
 
 function saveEditCOR() {
   if (!_editingCORId) return;
-  if (!validateForm()) { alert('Please fill out all required fields (*).'); return; }
-  const data = getFormData();
+  const container = document.getElementById('editCORFormContainer');
+  if (!validateFormIn(container)) { alert('Please fill out all required fields (*).'); return; }
+  const data = getFormDataFrom(container);
   const idx = state.corLog.findIndex(c => c.id === _editingCORId);
   if (idx === -1) return;
   state.corLog[idx] = { ...state.corLog[idx], ...data, id: _editingCORId, status: _editStatus };
@@ -2538,10 +2584,51 @@ function saveEditCOR() {
 }
 
 function printEditPDF() {
-  if (!validateForm()) { alert('Please fill out all required fields (*).'); return; }
-  const data = getFormData();
+  const container = document.getElementById('editCORFormContainer');
+  if (!validateFormIn(container)) { alert('Please fill out all required fields (*).'); return; }
+  const data = getFormDataFrom(container);
   document.getElementById('pdf-content').innerHTML = buildPDFHTML(data);
   document.getElementById('pdf-preview').style.display = 'block';
+}
+
+function validateFormIn(container) {
+  const f = id => container.querySelector(`[id="${id}"]`);
+  const req = ['customerName','corNumber','corTitle','corDescription'];
+  return req.every(id => { const el = f(id); return el && el.value.trim(); });
+}
+
+function getFormDataFrom(container) {
+  const f = id => container.querySelector(`[id="${id}"]`);
+  const sel = f('projectSelect');
+  const projectId = sel ? (parseInt(sel.value) || null) : null;
+  const project = projectId ? state.projects.find(p => p.id === projectId) : null;
+  return {
+    id: Date.now(), projectId,
+    projectName: project ? project.name : (sel?.options[sel.selectedIndex]?.text || ''),
+    customerName: f('customerName')?.value || '',
+    customerAddress: f('customerAddress')?.value || '',
+    customerCityState: f('customerCityState')?.value || '',
+    corNumber: f('corNumber')?.value || '',
+    customerRefNumber: f('customerRefNumber')?.value || '',
+    internalLabel: f('internalLabel')?.value || '',
+    createdBy: f('createdBy')?.value || '',
+    dateSubmitted: f('dateSubmitted')?.value || new Date().toISOString().split('T')[0],
+    corTitle: f('corTitle')?.value || '',
+    corDescription: f('corDescription')?.value || '',
+    tmTags: [...state.tmTags],
+    laborRows: [...state.laborRows],
+    materialRows: [...state.materialRows],
+    equipmentRows: [...state.equipmentRows],
+    otherRows: [...state.otherRows],
+    subRows: [...state.subRows],
+    taxRate: f('taxRate')?.value || '0',
+    markupRate: f('markupRate')?.value || '0',
+    bondRate: f('bondRate')?.value || '',
+    insuranceRate: f('insuranceRate')?.value || '',
+    totals: calcTotals(),
+    emailTo: [], emailCc: [], emailMessage: '',
+    status: _editStatus
+  };
 }
 
 function loadCOR(id) {
